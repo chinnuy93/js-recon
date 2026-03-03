@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chinnuy935's JS Recon - Bug Hunter Edition</title>
+
+    <!-- Social Share Meta Tags (Open Graph & Twitter) -->
+    <meta property="og:title" content="Chinnuy935's JS Recon - Bug Hunter Edition">
+    <meta property="og:description"
+        content="A powerful, client-side only JavaScript enumerator and beautifier custom-built for bug bounty hunters and penetration testers.">
+    <meta property="og:image" content="https://chinnuy.gitlab.io/js-recon/banner.png">
+    <meta property="og:url" content="https://chinnuy.gitlab.io/js-recon/">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Chinnuy935's JS Recon - Bug Hunter Edition">
+    <meta name="twitter:description"
+        content="A powerful, client-side only JavaScript enumerator and beautifier custom-built for bug bounty hunters and penetration testers.">
+    content="https://gitlab.com/chinnuy/js-recon/-/raw/main/recon.png">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕵️</text></svg>">
+
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --primary-blue: #58a6ff;
+            --btn-bg: #238636;
+            --btn-hover: #2ea043;
+            --border-color: #30363d;
+            --input-bg: #010409;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            padding: 16px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        h2 {
+            color: var(--primary-blue);
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+
+        input[type="text"] {
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            flex: 1;
+            min-width: 250px;
+            font-family: monospace;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        input[type="file"] {
+            max-width: 220px;
+            color: var(--text-color);
+            cursor: pointer;
+        }
+
+        input[type="file"]::file-selector-button {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background 0.2s;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        button {
+            padding: 10px 18px;
+            background: var(--btn-bg);
+            border: 1px solid rgba(240, 246, 252, 0.1);
+            border-radius: 6px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button:hover {
+            background: var(--btn-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .divider {
+            color: #8b949e;
+            font-size: 14px;
+            margin: 0 5px;
+        }
+
+        .bulk-container {
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 16px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+        }
+
+        .bulk-container textarea {
+            width: 100%;
+            height: 120px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            gap: 16px;
+            overflow: hidden;
+            max-width: 1600px;
+        }
+
+        .editor-container {
+            flex: 3;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .sidebar {
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+            background: rgba(1, 4, 9, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-header {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--primary-blue);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .enum-section {
+            margin: 16px 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        .enum-title {
+            padding: 8px 12px;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .enum-title .badge {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 10px;
+        }
+
+        /* Core Themes for Categories grouped by severity/type */
+        .theme-domains {
+            border-bottom: 2px solid #3fb950;
+            background: rgba(46, 160, 67, 0.1);
+            color: #56d364;
+        }
+
+        /* Green */
+        .theme-urls {
+            border-bottom: 2px solid #58a6ff;
+            background: rgba(56, 139, 253, 0.1);
+            color: #79c0ff;
+        }
+
+        /* Blue */
+        .theme-apis {
+            border-bottom: 2px solid #d2a8ff;
+            background: rgba(163, 113, 247, 0.1);
+            color: #e3b341;
+        }
+
+        /* Purple */
+        .theme-clouds {
+            border-bottom: 2px solid #f0883e;
+            background: rgba(235, 129, 50, 0.1);
+            color: #ffa657;
+        }
+
+        /* Orange */
+        .theme-secrets {
+            border-bottom: 2px solid #f85149;
+            background: rgba(218, 54, 51, 0.1);
+            color: #ff7b72;
+        }
+
+        /* Red */
+        .theme-headers {
+            border-bottom: 2px solid #8957e5;
+            background: rgba(137, 87, 229, 0.1);
+            color: #a371f7;
+        }
+
+        /* Deep Purple */
+        .theme-ips {
+            border-bottom: 2px solid #2f81f7;
+            background: rgba(47, 129, 247, 0.1);
+            color: #58a6ff;
+        }
+
+        /* Light Blue */
+
+        /* Specialized Themes */
+        .theme-graphql {
+            border-bottom: 2px solid #e10098;
+            background: rgba(225, 0, 152, 0.1);
+            color: #ff66c4;
+        }
+
+        /* Pink */
+        .theme-hidden {
+            border-bottom: 2px solid #8b949e;
+            background: rgba(139, 148, 158, 0.1);
+            color: #c9d1d9;
+        }
+
+        /* Gray */
+        .theme-admin {
+            border-bottom: 2px solid #d73a49;
+            background: rgba(215, 58, 73, 0.1);
+            color: #ff8591;
+        }
+
+        /* Crimson */
+        .theme-debug {
+            border-bottom: 2px solid #d1d5da;
+            background: rgba(209, 213, 218, 0.1);
+            color: #e1e4e8;
+        }
+
+        /* Silver */
+        .theme-network {
+            border-bottom: 2px solid #0366d6;
+            background: rgba(3, 102, 214, 0.1);
+            color: #79b8ff;
+        }
+
+        /* Royal Blue */
+        .theme-integrations {
+            border-bottom: 2px solid #6f42c1;
+            background: rgba(111, 66, 193, 0.1);
+            color: #b392f0;
+        }
+
+        /* Violet */
+        .theme-configs {
+            border-bottom: 2px solid #e36209;
+            background: rgba(227, 98, 9, 0.1);
+            color: #fb8f44;
+        }
+
+        /* Amber */
+
+        .enum-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: #0d1117;
+        }
+
+        .enum-item {
+            padding: 10px 12px;
+            font-size: 12px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            word-break: break-all;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .enum-item:last-child {
+            border-bottom: none;
+        }
+
+        .enum-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            padding-left: 16px;
+        }
+
+        .enum-item::before {
+            content: '>';
+            position: absolute;
+            left: 4px;
+            opacity: 0;
+            color: var(--primary-blue);
+            transition: opacity 0.2s;
+        }
+
+        .enum-item:hover::before {
+            opacity: 1;
+        }
+
+        .cm-search-match {
+            background-color: rgba(210, 168, 255, 0.4);
+            border-radius: 2px;
+        }
+
+        .CodeMirror {
+            width: 100%;
+            flex: 1;
+            height: auto;
+            font-size: 14px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-darker.min.css">
+</head>
+
+<body>
+
+    <div style="position: absolute; top: 24px; right: 24px; z-index: 1000;">
+        <a class="github-button" href="https://gitlab.com/chinnuy/js-recon"
+            data-color-scheme="no-preference: dark; light: dark; dark: dark;" data-icon="octicon-star" data-size="large"
+            data-show-count="true" aria-label="Star chinnuy935/js-recon on GitHub">Star</a>
+    </div>
+
+    <h2>Chinnuy935's JS Recon - Bug Hunter Edition</h2>
+
+    <div class="controls">
+        <input type="text" id="jsurl" placeholder="https://example.com/script.js" aria-label="JS Source URL">
+        <button onclick="fetchJS()" title="Fetch content from URL">
+            <span>Fetch URL</span>
+        </button>
+
+        <span class="divider">OR</span>
+
+        <input type="text" id="domainInput" placeholder="example.com" aria-label="Target Domain">
+        <button onclick="discoverJS()" title="Find all JS on this domain">
+            <span>Discover JS</span>
+        </button>
+
+        <span class="divider">OR</span>
+
+        <button onclick="toggleBulk()" style="background: #8957e5;" title="Analyze a list of URLs">
+            <span>Bulk URLs</span>
+        </button>
+
+        <span class="divider">OR</span>
+
+        <input type="file" id="fileInput" accept=".js,.json,.txt" title="Upload a local file">
+
+        <button onclick="formatJS()" style="background: var(--primary-blue); color: #0d1117;"
+            title="Perfectly format the code">
+            <span>Beautify Code</span>
+        </button>
+    </div>
+
+    <div id="bulkContainer" class="bulk-container">
+        <textarea id="bulkUrls"
+            placeholder="https://example.com/js/vendor.js&#10;https://example.com/js/main.js"></textarea>
+        <button onclick="bulkAnalyze()" style="width: 100%; justify-content: center;">Analyze All URLs</button>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="editor-container">
+            <textarea id="code"></textarea>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>🔍 Extracted Data</span>
+                <span id="total-count"
+                    style="font-size:12px; color:#c9d1d9; background:#21262d; padding:2px 8px; border-radius:10px;">0</span>
+            </div>
+            <div id="enum-content">
+                <div style="padding: 20px; text-align: center; color: #8b949e; font-size: 13px;">
+                    Load or beautify code to extract URLs, endpoints, and secrets.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/search/searchcursor.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.15.4/beautify.min.js"></script>
+
+    <script>
+        const editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+            mode: "javascript",
+            theme: "material-darker",
+            lineNumbers: true,
+            indentUnit: 4,
+            tabSize: 4,
+            matchBrackets: true,
+            autoCloseBrackets: true,
+            lineWrapping: false
+        });
+
+        editor.setValue('// Paste your minified JS code here, upload a file, or fetch from a URL.\n\nconst test=function(){console.log("Hello Developer!")};');
+
+        async function fetchJS(urlOverride = null) {
+            const urlInput = document.getElementById("jsurl");
+            const url = urlOverride || urlInput.value.trim();
+
+            if (!url) {
+                alert("Please enter a valid URL.");
+                return;
+            }
+
+            const originalVal = editor.getValue();
+            if (!urlOverride) {
+                editor.setValue("// Fetching data from URL...\n// Please wait, this might take a few seconds depending on the file size.");
+            }
+
+            try {
+                const proxy = "https://corsproxy.io/?";
+                const res = await fetch(proxy + encodeURIComponent(url));
+
+                if (!res.ok) throw new Error("Failed to fetch data. HTTP status: " + res.status);
+
+                const text = await res.text();
+
+                if (urlOverride) {
+                    // If in batch mode, append instead of overwrite
+                    editor.setValue(editor.getValue() + "\n\n// --- SOURCE: " + url + " ---\n" + text);
+                } else {
+                    editor.setValue(text);
+                }
+
+                setTimeout(extractInfo, 100);
+
+                if (!urlOverride) urlInput.value = "";
+
+            } catch (error) {
+                console.error("Error fetching JS:", error);
+                if (!urlOverride) {
+                    editor.setValue(originalVal);
+                    alert(`Could not fetch the JavaScript file.\nError: ${error.message}\nMake sure the URL is accessible and valid.`);
+                }
+            }
+        }
+
+        async function discoverJS() {
+            const domainInput = document.getElementById("domainInput");
+            let domain = domainInput.value.trim();
+
+            if (!domain) {
+                alert("Please enter a domain.");
+                return;
+            }
+
+            if (!domain.startsWith("http")) domain = "https://" + domain;
+
+            editor.setValue(`// Discovering JavaScript files on ${domain}...\n// Please wait...`);
+
+            try {
+                const proxy = "https://corsproxy.io/?";
+                const res = await fetch(proxy + encodeURIComponent(domain));
+                if (!res.ok) throw new Error("Failed to fetch domain. Status: " + res.status);
+
+                const html = await res.text();
+                const jsFiles = new Set();
+
+                // Regular expression to find script tags with src
+                const scriptRegex = /<script[^>]+src=["']([^"']+\.js(?:\?[^"']*)?)["'][^>]*>/gi;
+                let match;
+                while ((match = scriptRegex.exec(html)) !== null) {
+                    let src = match[1];
+                    if (src.startsWith("//")) {
+                        src = (domain.startsWith("https") ? "https:" : "http:") + src;
+                    } else if (src.startsWith("/")) {
+                        const urlObj = new URL(domain);
+                        src = urlObj.origin + src;
+                    } else if (!src.startsWith("http")) {
+                        src = domain.replace(/\/$/, "") + "/" + src;
+                    }
+                    jsFiles.add(src);
+                }
+
+                const discovered = Array.from(jsFiles);
+                if (discovered.length === 0) {
+                    editor.setValue(`// No JavaScript files discovered on the homepage of ${domain}.`);
+                    return;
+                }
+
+                editor.setValue(`// Discovered ${discovered.length} JS files. Batch analyzing...\n`);
+
+                for (const url of discovered) {
+                    editor.setValue(editor.getValue() + `// Adding ${url}...\n`);
+                    await fetchJS(url);
+                }
+
+                editor.setValue("// Batch Analysis Complete.\n" + editor.getValue());
+
+            } catch (error) {
+                console.error("Discovery error:", error);
+                alert("Error discovering JS: " + error.message);
+            }
+        }
+
+        function toggleBulk() {
+            const container = document.getElementById("bulkContainer");
+            container.style.display = container.style.display === "flex" ? "none" : "flex";
+        }
+
+        async function bulkAnalyze() {
+            const bulkInput = document.getElementById("bulkUrls");
+            const urls = bulkInput.value.split("\n").map(u => u.trim()).filter(u => u.length > 0);
+
+            if (urls.length === 0) {
+                alert("Please enter at least one URL.");
+                return;
+            }
+
+            editor.setValue(`// Bulk analyzing ${urls.length} URLs...\n`);
+            toggleBulk();
+
+            for (const url of urls) {
+                editor.setValue(editor.getValue() + `// Fetching ${url}...\n`);
+                await fetchJS(url);
+            }
+
+            editor.setValue("// Bulk Analysis Complete.\n" + editor.getValue());
+        }
+
+        document.getElementById("fileInput").addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                editor.setValue(reader.result);
+                setTimeout(extractInfo, 100);
+            };
+            reader.onerror = () => {
+                alert("Error reading file");
+            }
+            reader.readAsText(file);
+        });
+
+        function formatJS() {
+            let code = editor.getValue();
+
+            if (!code.trim()) {
+                alert("No code loaded in the editor.");
+                return;
+            }
+
+            try {
+                const formatted = js_beautify(code, {
+                    indent_size: 4,
+                    indent_char: " ",
+                    preserve_newlines: true,
+                    max_preserve_newlines: 2,
+                    wrap_line_length: 120,
+                    break_chained_methods: true,
+                    keep_array_indentation: false,
+                    space_before_conditional: true,
+                    unescape_strings: true,
+                    jslint_happy: true,
+                    end_with_newline: true,
+                    comma_first: false,
+                    e4x: true
+                });
+
+                editor.setValue(formatted);
+                editor.setCursor(0, 0);
+                setTimeout(extractInfo, 100);
+            } catch (err) {
+                console.error("Error beautifying JS:", err);
+                alert("Failed to format code. It might contain critical syntax errors.");
+            }
+        }
+        let activeMarks = [];
+
+        function highlightMatch(text, type) {
+            activeMarks.forEach(mark => mark.clear());
+            activeMarks = [];
+
+            const cursor = editor.getSearchCursor(text);
+            let firstMatch = null;
+
+            while (cursor.findNext()) {
+                if (!firstMatch) firstMatch = { from: cursor.from(), to: cursor.to() };
+                const mark = editor.markText(cursor.from(), cursor.to(), { className: "cm-search-match" });
+                activeMarks.push(mark);
+            }
+
+            if (firstMatch) {
+                editor.scrollIntoView(firstMatch, 100);
+                editor.setSelection(firstMatch.from, firstMatch.to);
+                editor.focus();
+            }
+        }
+
+        function extractInfo() {
+            const code = editor.getValue();
+            if (!code.trim()) return;
+
+            const enumContent = document.getElementById("enum-content");
+            enumContent.innerHTML = "";
+            let totalCount = 0;
+
+            const extractors = [
+                {
+                    title: "DOMAINS & SUBDOMAINS",
+                    theme: "theme-domains",
+                    getItems: (code) => {
+                        const results = new Set();
+                        let regex = /['"](?:https?:\/\/)?([a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,10})[:\/]?/g;
+                        let match;
+                        while ((match = regex.exec(code)) !== null) {
+                            if (!match[1].includes("/") && !match[1].includes("\\")) results.add(match[1]);
+                        }
+                        return Array.from(results);
+                    }
+                },
+                {
+                    title: "INTERNAL IPs & PORTS",
+                    theme: "theme-ips",
+                    getItems: (code) => {
+                        const ips = code.match(/\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?::[0-9]{1,5})?\b/g);
+                        const localHosts = code.match(/(?:http:\/\/)?localhost:[0-9]{1,5}/g);
+                        return Array.from(new Set([...(ips || []), ...(localHosts || [])]));
+                    }
+                },
+
+                {
+                    title: "FULL URLs",
+                    theme: "theme-urls",
+                    getItems: (code) => {
+                        const urls = code.match(/https?:\/\/[a-zA-Z0-9.\-_~:/?#\[\]@!$&'()*+,;=%]+/g);
+                        return urls ? Array.from(new Set(urls)) : [];
+                    }
+                },
+                {
+                    title: "DEV, STAGING & TEST URLs",
+                    theme: "theme-configs",
+                    getItems: (code) => {
+                        const envs = code.match(/https?:\/\/[a-zA-Z0-9.\-_]*(?:dev|staging|stg|test|uat|preprod)[a-zA-Z0-9.\-_]*\.[a-zA-Z]{2,10}/gi);
+                        return envs ? Array.from(new Set(envs)) : [];
+                    }
+                },
+                {
+                    title: "WEBSOCKET ENDPOINTS",
+                    theme: "theme-network",
+                    getItems: (code) => {
+                        const wss = code.match(/wss?:\/\/[a-zA-Z0-9.\-_~:/?#\[\]@!$&'()*+,;=%]+/g);
+                        return wss ? Array.from(new Set(wss)) : [];
+                    }
+                },
+                {
+                    title: "OAUTH / AUTH URLs",
+                    theme: "theme-secrets",
+                    getItems: (code) => {
+                        const oauth = code.match(/https?:\/\/[^\s"'<>]*(?:oauth|authorize|login|signin|token|sso|saml)[^\s"'<>]*/gi);
+                        return oauth ? Array.from(new Set(oauth)) : [];
+                    }
+                },
+
+                {
+                    title: "API ENDPOINTS & ROUTES",
+                    theme: "theme-apis",
+                    getItems: (code) => {
+                        const paths = new Set();
+                        let match;
+                        const regex = /['"](\/[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*\/?(?:\?[a-zA-Z0-9_.-]+=[^"']*)?)['"]/g;
+                        while ((match = regex.exec(code)) !== null) {
+                            if (match[1].length > 1 && !match[1].startsWith('//')) paths.add(match[1]);
+                        }
+                        return Array.from(paths);
+                    }
+                },
+                {
+                    title: "VERSIONED APIs (v1, v2)",
+                    theme: "theme-apis",
+                    getItems: (code) => {
+                        const paths = new Set();
+                        let match;
+                        const regex = /['"](\/v[1-9]\/[a-zA-Z0-9_.-]+(?:\/[a-zA-Z0-9_.-]+)*)['"]/gi;
+                        while ((match = regex.exec(code)) !== null) paths.add(match[1]);
+                        return Array.from(paths);
+                    }
+                },
+                {
+                    title: "GRAPHQL ENDPOINTS",
+                    theme: "theme-graphql",
+                    getItems: (code) => {
+                        const gql = code.match(/(?:https?:\/\/[a-zA-Z0-9.-]+)?\/graphql(?:\/v1)?/gi);
+                        const strGql = code.match(/['"](query|mutation)\s*[{]/gi);
+                        const results = Array.from(new Set(gql || []));
+                        if (strGql) results.push("GraphQL Query Definitions Found");
+                        return results;
+                    }
+                },
+                {
+                    title: "ADMIN / INTERNAL FUNCTIONS",
+                    theme: "theme-admin",
+                    getItems: (code) => {
+                        const admins = code.match(/['"](\/(?:admin|internal|priv|manage|dashboard|superuser|root)[a-zA-Z0-9_.\-\/]*)['"]/gi);
+                        return admins ? Array.from(new Set(admins.map(a => a.replace(/['"]/g, '')))) : [];
+                    }
+                },
+                {
+                    title: "HIDDEN ENDPOINTS",
+                    theme: "theme-hidden",
+                    getItems: (code) => {
+                        const hidden = code.match(/['"](\/(?:ping|health|status|metrics|debug|trace|dump|env)[a-zA-Z0-9_.\-\/]*)['"]/gi);
+                        return hidden ? Array.from(new Set(hidden.map(h => h.replace(/['"]/g, '')))) : [];
+                    }
+                },
+                {
+                    title: "UPLOAD / DOWNLOAD ENDPOINTS",
+                    theme: "theme-apis",
+                    getItems: (code) => {
+                        const ud = code.match(/['"](\/(?:upload|download|export|import|file|asset)[a-zA-Z0-9_.\-\/]*)['"]/gi);
+                        return ud ? Array.from(new Set(ud.map(u => u.replace(/['"]/g, '')))) : [];
+                    }
+                },
+
+                {
+                    title: "HARDCODED SECRETS / TOKENS",
+                    theme: "theme-secrets",
+                    getItems: (code) => {
+                        const secrets = new Set();
+                        let match;
+                        let regex = /(?:api[_-]?key|api[_-]?token|secret|password|bearer|auth[_-]?token|access[_-]?token|client[_-]?secret)['"]?\s*[:=]\s*['"]?([a-zA-Z0-9\-_+/=]{10,})['"]?/gi;
+                        while ((match = regex.exec(code)) !== null) secrets.add(match[1]);
+
+                        const jwts = code.match(/ey[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g);
+                        if (jwts) jwts.forEach(j => secrets.add(j));
+
+                        if (code.includes("BEGIN RSA PRIVATE KEY") || code.includes("BEGIN PRIVATE KEY")) secrets.add("Found Private Key PEM Block");
+
+                        return Array.from(secrets);
+                    }
+                },
+                {
+                    title: "AWS / FIREBASE / CLOUD",
+                    theme: "theme-clouds",
+                    getItems: (code) => {
+                        const clouds = new Set();
+                        const akias = code.match(/AKIA[0-9A-Z]{16}/g);
+                        if (akias) akias.forEach(a => clouds.add(`AWS Key: ${a}`));
+
+                        const urls = code.match(/[a-zA-Z0-9.-]+\.(?:s3[a-zA-Z0-9.-]*\.amazonaws\.com|cloudfront\.net|firebaseio\.com)/g);
+                        if (urls) urls.forEach(u => clouds.add(u));
+
+                        const cdn = code.match(/https?:\/\/(?:cdn\.|[a-zA-Z0-9.-]*cdn[a-zA-Z0-9.-]*\.)[a-zA-Z0-9.-]+/g);
+                        if (cdn) cdn.forEach(c => clouds.add(c));
+
+                        return Array.from(clouds);
+                    }
+                },
+                {
+                    title: "3RD PARTY INTEGRATIONS",
+                    theme: "theme-integrations",
+                    getItems: (code) => {
+                        const integrations = code.match(/https?:\/\/(?:api\.)?(stripe|paypal|twilio|sendgrid|mailgun|slack|discord|github|gitlab|bitbucket)\.com[^\s"'<>]*/gi);
+                        return integrations ? Array.from(new Set(integrations)) : [];
+                    }
+                },
+                {
+                    title: "AUTHORIZATION HEADERS",
+                    theme: "theme-headers",
+                    getItems: (code) => {
+                        const headers = new Set();
+                        let match;
+                        const regex = /['"](?:Authorization|Bearer|Token|X-[a-zA-Z0-9-]+)['"]\s*:\s*['"]([^"']+)['"]/gi;
+                        while ((match = regex.exec(code)) !== null) headers.add(match[0].replace(/['"]/g, ''));
+                        return Array.from(headers);
+                    }
+                },
+
+                {
+                    title: "ENVIRONMENT VARIABLES",
+                    theme: "theme-configs",
+                    getItems: (code) => {
+                        const envs = code.match(/process\.env\.[a-zA-Z0-9_]+/g);
+                        return envs ? Array.from(new Set(envs)) : [];
+                    }
+                },
+                {
+                    title: "FEATURE FLAGS & ROLES",
+                    theme: "theme-configs",
+                    getItems: (code) => {
+                        const features = new Set();
+                        let match;
+                        const regex = /(?:is|enable|disable|use)[A-Z][a-zA-Z0-9]+(?:\s*=\s*(?:true|false))?/g;
+                        while ((match = regex.exec(code)) !== null) if (!match[0].includes("function")) features.add(match[0]);
+
+                        const roles = code.match(/['"](?:admin|superuser|manager|root|staff)['"]/gi);
+                        if (roles) roles.forEach(r => features.add(`Role: ${r}`));
+                        return Array.from(features);
+                    }
+                },
+                {
+                    title: "HIDDEN & DEBUG PARAMETERS",
+                    theme: "theme-debug",
+                    getItems: (code) => {
+                        const params = code.match(/[\?&](?:debug|test|dev|bypass|admin|force)=[^&"'\s]+/gi);
+                        return params ? Array.from(new Set(params)) : [];
+                    }
+                },
+                {
+                    title: "SOURCE MAPS / BACKUPS",
+                    theme: "theme-hidden",
+                    getItems: (code) => {
+                        const files = code.match(/[a-zA-Z0-9_.-]+\.(?:map|bak|old|sql|tar|gz|zip)/g);
+                        return files ? Array.from(new Set(files)) : [];
+                    }
+                },
+                {
+                    title: "CORS MAPS & ERRORS",
+                    theme: "theme-configs",
+                    getItems: (code) => {
+                        const cors = new Set();
+                        const cMatches = code.match(/Access-Control-Allow-(?:Origin|Headers|Methods)[^"'\n]*/gi);
+                        if (cMatches) cMatches.forEach(c => cors.add(c));
+
+                        const eMatches = code.match(/console\.(?:error|warn|debug)\(['"]([^'"]+)['"]/gi);
+                        if (eMatches) eMatches.forEach(e => cors.add(e.substring(0, 50) + "...")); // Truncated logs
+
+                        return Array.from(cors);
+                    }
+                }
+            ];
+
+            extractors.forEach(ext => {
+                const results = ext.getItems(code);
+
+                if (results.length > 0) {
+                    totalCount += results.length;
+
+                    const section = document.createElement("div");
+                    section.className = "enum-section";
+
+                    const title = document.createElement("div");
+                    title.className = `enum-title ${ext.theme}`;
+                    title.innerHTML = `<span>${ext.title}</span><span class="badge">${results.length}</span>`;
+                    section.appendChild(title);
+
+                    const list = document.createElement("ul");
+                    list.className = "enum-list";
+
+                    results.forEach(item => {
+                        const li = document.createElement("li");
+                        li.className = "enum-item";
+                        li.innerText = item;
+                        li.onclick = () => highlightMatch(item, ext.title);
+                        li.title = "Click to highlight in editor";
+                        list.appendChild(li);
+                    });
+
+                    section.appendChild(list);
+                    enumContent.appendChild(section);
+                }
+            });
+
+            document.getElementById("total-count").innerText = totalCount;
+
+            if (totalCount === 0) {
+                enumContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #8b949e; font-size: 13px;">No endpoints or secrets found.</div>';
+            }
+        }
+
+        setTimeout(extractInfo, 500);
+
+    </script>
+
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+</body>
+
+</html>
