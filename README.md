@@ -29,7 +29,7 @@ JS Recon allows you to instantly fetch, perfectly beautify, and aggressively par
 
 ## Live Demo
 Access the fully hosted static application here:
-👉 **[https://chinnuy935.github.io/js-recon/](https://chinnuy935.github.io/js-recon/)**
+👉 **[https://chinnuy93.github.io/js-recon/](https://chinnuy93.github.io/js-recon/)**
 
 ## Usage
 1. Open the Live Demo.
@@ -43,11 +43,11 @@ Because this is a completely static tool with zero backend dependencies, you can
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/chinnuy935/js-recon.git
+   git clone https://github.com/chinnuy93/js-recon.git
    ```
 2. Open `index.html` directly in any modern web browser.
    *(No `npm install`, Node.js, or Docker required!)*
 
 ---
-  <i>Designed by chinnuy935</i>
+  <i>Designed by chinnuy93</i>
 </div>
