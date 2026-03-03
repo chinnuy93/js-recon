@@ -2,8 +2,8 @@
   <h1>JS Recon - Bug Hunter Edition</h1>
   <p><strong>A powerful, client-side only JavaScript enumerator and beautifier custom-built for bug bounty hunters and penetration testers.</strong></p>
   
-  <a href="https://chinnuy.gitlab.io/js-recon/">
-    <img src="https://img.shields.io/badge/Live_Demo-Access_Now-fc6d26?style=for-the-badge&logo=gitlab" alt="Live Demo">
+  <a href="https://chinnuy93.github.io/js-recon/">
+    <img src="https://img.shields.io/badge/Live_Demo-Access_Now-58a6ff?style=for-the-badge&logo=github" alt="Live Demo">
   </a>
 </div>
 
